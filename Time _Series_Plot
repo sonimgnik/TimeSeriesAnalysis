@@ -1,0 +1,71 @@
+---
+title: "Time Series Plot"
+output: html_notebook
+---
+
+```{r check for packages, message=FALSE, warning=FALSE, include=FALSE}
+packages = c("dygraphs", "xts", "ggplot2")
+package.check <- lapply(packages, FUN = function(x) {
+  if (!require(x, character.only = TRUE)) {
+    install.packages(x, dependencies = TRUE)
+    library(x, character.only = TRUE)
+  }
+})
+
+search()
+
+options(scipen = 999)
+```
+
+```{r data call, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+df <- na.omit(read.csv(file='ticker_data.csv',header=TRUE,sep=",",row.names=NULL))
+drop <- c("X")
+df = df[,!(names(df) %in% drop)]
+df$Date <- as.Date(df$Date)
+head(df,10)
+```
+
+```{r check df, echo=FALSE}
+cat("The column names for this dataframe are:\n",colnames(df),'\n')
+cat('\n')
+cat("The number of columns in the dataframe is", ncol(df),'\n') 
+cat('\n')
+cat("The number of observatinos(rows) in the dataframe is", nrow(df))
+```
+
+
+```{r standard time series plot, echo=FALSE}
+library(ggplot2)
+
+ggplot(df,aes(Date,Close)) + 
+  geom_line(aes(color="Ticker")) +
+  labs(color="Legend") +
+  scale_colour_manual("", breaks = c("Ticker"),
+                          values = c("blue")) +
+  ggtitle("Closing Stock Prices") + 
+  theme(plot.title = element_text(lineheight=.7, face="bold"))
+
+ggsave("time_series.jpg")
+```
+
+```{r dygraph interactive plot, echo=FALSE}
+library(dygraphs)
+library(xts)
+# Plot with the htmlwidget dygraphs
+# dygraph() needs xts time series objects
+df_xts <- xts(df$Close,order.by=df$Date,frequency=365)
+ 
+stocks <- cbind(df_xts)
+ 
+dygraph(stocks,ylab="Close", 
+        main="Closing Stock Prices") %>%
+  dySeries("V1",label="Ticker") %>%
+  dyOptions(colors = c("blue","brown")) %>%
+  dyRangeSelector()
+```
+
+```{r Clean Golbal Environment, eval=FALSE, include=FALSE}
+rm(list = ls())
+gc()
+cat("You have clean your environments.")
+```
