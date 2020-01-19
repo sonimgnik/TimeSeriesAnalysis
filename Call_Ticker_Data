@@ -1,0 +1,60 @@
+---
+title: "Call Ticker Data"
+output:
+  html_notebook: 
+    toc: yes
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{r check for packages, message=FALSE, warning=FALSE, include=FALSE}
+packages = c("quantmod", "zoo", "ggplot2")
+package.check <- lapply(packages, FUN = function(x) {
+  if (!require(x, character.only = TRUE)) {
+    install.packages(x, dependencies = TRUE)
+    library(x, character.only = TRUE)
+  }
+})
+
+search()
+
+options(scipen = 999)
+```
+
+```{r data call, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+library(zoo)
+library(quantmod)
+
+#call ticker from Yahoo
+ticker <- readline(prompt="Enter ticker: ")
+start.date<- readline(prompt="Enter start date in YYYY-MM-DD format: ")
+end.date <- Sys.Date()
+#start.date <- as.Date(start.date)
+#end.date <- as.Date(end.date)
+print(paste("Retrieve data for,", ticker, "from", start.date,"to", end.date,"."))
+
+ticker.price <- NULL
+for(ticker in ticker)
+  ticker.price <- na.omit(cbind(ticker.price,getSymbols(ticker, from = start.date, to = end.date,auto.assign = F)))
+head(ticker.price,3) 
+```
+
+```{r Create Data Frame, echo=FALSE, message=FALSE, warning=FALSE}
+#create data frame
+library(ggplot2)
+df <- data.frame(date=index(ticker.price), coredata(ticker.price))
+names(df) <- c("Date","Open","High","Low","Close","Volume","Adjusted.Price")
+head(df,10) 
+tail(df,10)
+```
+
+```{r export data to project folder, echo=FALSE}
+write.csv(df,'ticker_data.csv')
+print("Export successful.")
+```
+
+```{r Clean Golbal Environment, eval=FALSE, include=FALSE}
+rm(list = ls())
+gc()
+cat("You have clean your environments.")
+```
