@@ -1,0 +1,38 @@
+---
+title: "rBokeh Time Series"
+output: html_notebook
+---
+
+```{r check for packages, message=FALSE, warning=FALSE, include=FALSE}
+packages = c("rbokeh", "ggplot2")
+package.check <- lapply(packages, FUN = function(x) {
+  if (!require(x, character.only = TRUE)) {
+    install.packages(x, dependencies = TRUE)
+    library(x, character.only = TRUE)
+  }
+})
+
+search()
+
+options(scipen = 999)
+```
+
+```{r call library, include=FALSE}
+library(rbokeh)
+```
+
+```{r read in data, include=FALSE}
+ticker <- read.csv('ticker_data.csv')
+ticker$Date <- as.Date(ticker$Date)
+```
+
+```{r create graph, warning=FALSE, include=FALSE}
+p <- figure(title = 'Stock Data') %>% 
+  ly_points(Date, Volume / (10 ^ 6), data = ticker, hover = c(Date, High, Open, Close)) %>%
+  ly_abline(v = with(ticker, Date[which.max(Volume)])) %>%
+  y_axis(label = 'Volume in millions', number_formatter = 'numeral', format = '0.00')
+```
+
+```{r print graph, echo=FALSE, warning=FALSE}
+p
+```
